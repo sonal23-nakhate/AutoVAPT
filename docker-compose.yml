@@ -1,0 +1,40 @@
+services:
+  # 1. Persistent Storage Tier
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: autovapt_postgres
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: autovapt_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. Logic Tier (FastAPI Backend)
+  backend-api:
+    build: .
+    container_name: autovapt_backend
+    command: uvicorn main:app --host 0.0.0.0 --port 80
+    ports:
+      - "8000:80"
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: autovapt_db
+    depends_on:
+      - postgres-db
+
+  # 3. Presentation Tier (Streamlit UI)
+  frontend-dashboard:
+    build: .
+    container_name: autovapt_frontend
+    command: streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend-api
+
+volumes:
+  postgres_data:
