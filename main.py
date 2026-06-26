@@ -12,13 +12,17 @@ scheduler = BackgroundScheduler()
 AUTOMATED_TARGETS = ["scanme.nmap.org"]
 
 def get_db_connection():
+    # If a dynamic cloud database URL is present, use it. Otherwise, use local fallback variables.
+    database_url = os.getenv("DATABASE_URL")
+    if database_url:
+        return psycopg2.connect(database_url)
+        
     return psycopg2.connect(
         host="postgres-db",
         database=os.getenv("POSTGRES_DB", "autovapt_db"),
         user=os.getenv("POSTGRES_USER", "myuser"),
         password=os.getenv("POSTGRES_PASSWORD", "mypassword")
     )
-
 @app.on_event("startup")
 def setup_platform():
     print("AutoVAPT initialization process started...", flush=True)
