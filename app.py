@@ -1,11 +1,15 @@
 import streamlit as st
 import requests
-import pandas as pd
+import pd as pd
+import os
 
 st.set_page_config(layout="wide")
 
 st.title("🛡️ AutoVAPT Platform")
 st.caption("Automated Vulnerability Assessment & Penetration Testing Engine")
+
+# This dynamically finds your backend on Render's cloud servers automatically!
+BACKEND_URL = os.getenv("BACKEND_URL", "http://backend-api:80")
 
 col1, col2 = st.columns([1, 2])
 
@@ -17,8 +21,8 @@ with col1:
         if target:
             with st.spinner("Executing live network assessment..."):
                 try:
-                    # Pointing to our FastAPI container backend port 80
-                    response = requests.get(f"http://backend-api:80/run-scan?target={target}")
+                    # Updated to use our cloud routing variable
+                    response = requests.get(f"{BACKEND_URL}/run-scan?target={target}")
                     result = response.json()
                     
                     if result.get("status") == "Scan Completed":
@@ -37,7 +41,8 @@ with col2:
         pass 
         
     try:
-        response = requests.get("http://backend-api:80/findings")
+        # Updated to use our cloud routing variable
+        response = requests.get(f"{BACKEND_URL}/findings")
         data = response.json()
         if data and isinstance(data, list):
             df = pd.DataFrame(data)
